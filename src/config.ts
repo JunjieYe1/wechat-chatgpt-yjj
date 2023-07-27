@@ -8,7 +8,7 @@ export const config: IConfig = {
   model: process.env.MODEL || "gpt-3.5-turbo",
   chatPrivateTriggerKeyword: process.env.CHAT_PRIVATE_TRIGGER_KEYWORD || "",
   chatTriggerRule: process.env.CHAT_TRIGGER_RULE || "",
-  disableGroupMessage: process.env.DISABLE_GROUP_MESSAGE === "true",
+  disableGroupMessage: process.env.DISABLE_GROUP_MESSAGE === "false",
   temperature: process.env.TEMPERATURE ? parseFloat(process.env.TEMPERATURE) : 0.6,
   blockWords: process.env.BLOCK_WORDS?.split(",") || [],
   chatgptBlockWords: process.env.CHATGPT_BLOCK_WORDS?.split(",") || [],
