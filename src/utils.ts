@@ -26,7 +26,7 @@ function countTokens(str: string):number {
 }
 export function isTokenOverLimit(chatMessage:ChatCompletionRequestMessage[]): boolean {
   let limit = 4096;
-  if (config.model==="gpt-3.5-turbo" || config.model==="gpt-3.5-turbo-0301") {
+  if (config.model==="gpt-3.5-turbo-16k-0613" || config.model==="gpt-3.5-turbo-0301") {
     limit = 4096;
   }
   return calTokens(chatMessage) > limit;
