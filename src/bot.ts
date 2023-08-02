@@ -252,9 +252,20 @@ export class ChatGPTBot {
         return;
       });
       // Whisper
-      whisper("",fileName).then((text) => {
-        message.say(text);
-      })
+      whisper("",fileName).then(async (text) => {
+      // 将语音转译后的文本作为新的用户输入发给 ChatGPT
+      if (privateChat) {
+        return await this.onPrivateMessage(talker, text);
+        }
+      else {
+          if (!this.disableGroupMessage){
+            return await this.onGroupMessage(talker, text, room);
+          }
+          else {
+          return;
+        }
+      }
+    })
       return;
     }
     if (rawText.startsWith("/cmd ")){
