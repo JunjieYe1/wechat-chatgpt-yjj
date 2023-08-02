@@ -135,7 +135,7 @@ export class ChatGPTBot {
       DBUtils.addAssistantMessage(talkerName,gptMessage);
       return gptMessage;
     }
-    return "Sorry, please try again later. 😔";
+    return "抱歉，请稍后再试。😔";
   }
   // Check if the message returned by chatgpt contains masked words]
   checkChatGPTBlockWords(message: string): boolean {
@@ -262,8 +262,8 @@ export class ChatGPTBot {
             return await this.onGroupMessage(talker, text, room);
           }
           else {
-          return;
-        }
+            return;
+          }
       }
     })
       return;

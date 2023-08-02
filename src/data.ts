@@ -138,9 +138,22 @@ class DB {
   public addAssistantMessage(username: string, message: string): void {
     const user = this.getUserByUsername(username);
     if (user) {
-      while (isTokenOverLimit(user.chatMessage)){
+      // 首次检查token数量是否超过限制
+    let isOverLimit = isTokenOverLimit(user.chatMessage);
+
+      while (isOverLimit){
+        // 如果已经没有多余的消息可以删除，提示用户缩短输入内容
+        if (user.chatMessage.length <= 1) {
+          user.chatMessage.push({
+            role: ChatCompletionRequestMessageRoleEnum.Assistant,
+            content: "提问内容过长，请缩短内容"
+          });
+          return;
+        }
         // 删除从第2条开始的消息(因为第一条是prompt)
         user.chatMessage.splice(1,1);
+        // 重新检查token数量是否超过限制
+        isOverLimit = isTokenOverLimit(user.chatMessage);
       }
       user.chatMessage.push({
         role: ChatCompletionRequestMessageRoleEnum.Assistant,
