@@ -20,7 +20,7 @@ function calTokens(chatMessage:ChatCompletionRequestMessage[]):number {
   return count + 2
 }
 
-function countTokens(str: string):number {
+export function countTokens(str: string):number {
   const encoded = tokenizer.encode(str)
   return encoded.bpe.length
 }
