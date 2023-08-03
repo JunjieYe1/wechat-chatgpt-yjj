@@ -7,22 +7,22 @@ import DBUtils from "./data.js";
 import { regexpEncode } from "./utils.js";
 enum MessageType {
   Unknown = 0,
-  Attachment = 1, // Attach(6),
-  Audio = 2, // Audio(1), Voice(34)
-  Contact = 3, // ShareCard(42)
-  ChatHistory = 4, // ChatHistory(19)
-  Emoticon = 5, // Sticker: Emoticon(15), Emoticon(47)
-  Image = 6, // Img(2), Image(3)
-  Text = 7, // Text(1)
-  Location = 8, // Location(48)
-  MiniProgram = 9, // MiniProgram(33)
-  GroupNote = 10, // GroupNote(53)
-  Transfer = 11, // Transfers(2000)
-  RedEnvelope = 12, // RedEnvelopes(2001)
-  Recalled = 13, // Recalled(10002)
-  Url = 14, // Url(5)
-  Video = 15, // Video(4), Video(43)
-  Post = 16, // Moment, Channel, Tweet, etc
+  Attachment = 1,
+  Audio = 2,
+  Contact = 3,
+  ChatHistory = 4,
+  Emoticon = 5,
+  Image = 6,
+  Text = 7,
+  Location = 8,
+  MiniProgram = 9,
+  GroupNote = 10,
+  Transfer = 11,
+  RedEnvelope = 12,
+  Recalled = 13,
+  Url = 14,
+  Video = 15,
+  Post = 16,
 }
 const SINGLE_MESSAGE_MAX_SIZE = 500;
 type Speaker = RoomImpl | ContactImpl;
@@ -32,11 +32,13 @@ interface ICommand{
   exec: (talker:Speaker, text:string) => Promise<void>;
 }
 export class ChatGPTBot {
+  admin: ContactInterface;
   chatPrivateTriggerKeyword = config.chatPrivateTriggerKeyword;
   chatTriggerRule = config.chatTriggerRule? new RegExp(config.chatTriggerRule): undefined;
   disableGroupMessage = config.disableGroupMessage || false;
   botName: string = "";
   ready = false;
+
   setBotName(botName: string) {
     this.botName = botName;
   }
@@ -89,7 +91,27 @@ export class ChatGPTBot {
           DBUtils.clearHistory(talker.name());
         }
       }
+    },
+    {
+      name: "报名",
+      description: "发送报名信息给管理员",
+      exec: async (talker, prompt) => {
+        if (this.admin) {
+            await this.admin.say(`${talker.name()} 通过指令发送了报名信息: ${prompt}`);
+        } else {
+            await talker.say('暂无管理员设置，请先使用 /cmd setadmin 指令设置管理员。');
+        }
+      }
+    },
+    {
+      name: "setadmin",
+      description: "设置当前联系人为管理员",
+      exec: async (talker) => {
+        this.admin = talker;
+        await talker.say('你已被设置为管理员。');
+      }
     }
+
   ]
 
   /**
@@ -146,24 +168,26 @@ export class ChatGPTBot {
   }
   // The message is segmented according to its size
   async trySay(
-    talker: RoomInterface | ContactInterface,
-    mesasge: string
-  ): Promise<void> {
-    const messages: Array<string> = [];
-    if (this.checkChatGPTBlockWords(mesasge)) {
-      console.log(`🚫 Blocked ChatGPT: ${mesasge}`);
-      return;
-    }
-    let message = mesasge;
-    while (message.length > SINGLE_MESSAGE_MAX_SIZE) {
-      messages.push(message.slice(0, SINGLE_MESSAGE_MAX_SIZE));
-      message = message.slice(SINGLE_MESSAGE_MAX_SIZE);
-    }
-    messages.push(message);
-    for (const msg of messages) {
-      await talker.say(msg);
-    }
+  talker: RoomInterface | ContactInterface,
+  mesasge: string
+): Promise<void> {
+  const messages: Array<string> = [];
+  if (this.checkChatGPTBlockWords(mesasge)) {
+    console.log(`🚫 Blocked ChatGPT: ${mesasge}`);
+    return;
   }
+  let message = mesasge;
+  while (message.length > SINGLE_MESSAGE_MAX_SIZE) {
+    messages.push(message.slice(0, SINGLE_MESSAGE_MAX_SIZE));
+    message = message.slice(SINGLE_MESSAGE_MAX_SIZE);
+  }
+  messages.push(message);
+  for (const msg of messages) {
+    await talker.say(msg);
+    // 间隔1秒
+    await new Promise((resolve) => setTimeout(resolve, 200));
+  }
+}
   // Check whether the ChatGPT processing can be triggered
   triggerGPTMessage(text: string, privateChat: boolean = false): boolean {
     const { chatTriggerRule } = this;
@@ -309,3 +333,4 @@ export class ChatGPTBot {
     }
   }
 }
+
