@@ -32,7 +32,7 @@ interface ICommand{
   exec: (talker:Speaker, text:string) => Promise<void>;
 }
 export class ChatGPTBot {
-  admin: ContactInterface;
+  admin: ContactInterface | null = null;
   chatPrivateTriggerKeyword = config.chatPrivateTriggerKeyword;
   chatTriggerRule = config.chatTriggerRule? new RegExp(config.chatTriggerRule): undefined;
   disableGroupMessage = config.disableGroupMessage || false;
@@ -97,9 +97,10 @@ export class ChatGPTBot {
       description: "发送报名信息给管理员",
       exec: async (talker, prompt) => {
         if (this.admin) {
-            await this.admin.say(`${talker.name()} 通过指令发送了报名信息: ${prompt}`);
+          const talkerName = talker instanceof ContactImpl ? talker.name() : await talker.topic();
+          await this.admin.say(`${talkerName} 通过指令发送了报名信息: ${prompt}`);
         } else {
-            await talker.say('暂无管理员设置，请先使用 /cmd setadmin 指令设置管理员。');
+          await talker.say('暂无管理员设置，请先使用 /cmd setadmin 指令设置管理员。');
         }
       }
     },
@@ -107,11 +108,14 @@ export class ChatGPTBot {
       name: "setadmin",
       description: "设置当前联系人为管理员",
       exec: async (talker) => {
-        this.admin = talker;
-        await talker.say('你已被设置为管理员。');
+        if(talker instanceof ContactImpl){
+          this.admin = talker;
+          await talker.say('你已被设置为管理员。');
+        } else {
+          await talker.say('只能在个人聊天中设置管理员。');
+        }
       }
     }
-
   ]
 
   /**
